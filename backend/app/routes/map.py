@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import requests
 import os
 from dotenv import load_dotenv
-
+from datetime import datetime, timedelta
 router = APIRouter()
 
 # ========================
@@ -84,6 +84,7 @@ def get_car_route(request: RouteRequest):
 def get_walk_route(request: RouteRequest):
     return fetch_route(request.origin, request.destination, "walking")
 
+
 @router.post("/fastest-route")
 def get_fastest_route(request: RouteRequest):
     modes = ["driving", "walking", "transit"]
@@ -92,11 +93,17 @@ def get_fastest_route(request: RouteRequest):
     for mode in modes:
         try:
             route_data = fetch_route(request.origin, request.destination, mode)
+            now = datetime.now()
+            duration_sec = route_data["duration_value"]
+            arrival_time = now + timedelta(seconds=duration_sec)
+
             routes.append({
                 "mode": mode,
                 "summary": route_data["summary"],
                 "duration": route_data["duration"],
-                "duration_value": route_data["duration_value"],
+                "duration_value": duration_sec,
+                "departure_time": now.strftime("%H:%M"),
+                "arrival_time": arrival_time.strftime("%H:%M"),
                 "steps": route_data["steps"]
             })
         except HTTPException as e:
