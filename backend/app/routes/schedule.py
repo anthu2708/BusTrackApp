@@ -85,26 +85,36 @@ LOC_ABB = {
 @router.post("/upload-excel")
 async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
     """Upload an Excel file and parse schedule data into the database."""
-    if not file.filename.endswith((".xls", ".xlsx")):
-        raise HTTPException(status_code=400, detail="Invalid file format")
+    try:
+        if not file.filename.endswith((".xls", ".xlsx")):
+            raise HTTPException(status_code=400, detail="Invalid file format")
 
-    df = pd.read_excel(file.file, skiprows=2, engine="openpyxl")  # Skip first 2 rows
+        db.query(Schedule).delete()
+        db.commit()
 
-    for _, row in df.iterrows():
-        class_name = str(row.get("Section", "Unknown Class")).strip()
-        start_date = str(row.get("Start Date", "")).strip()
-        end_date = str(row.get("End Date", "")).strip()
-        meeting_patterns_text = str(row.get("Meeting Patterns", "")).strip()
+        df = pd.read_excel(file.file, skiprows=2, engine="openpyxl")  # Skip first 2 rows
+        print("DataFrame loaded:", df.columns)
 
-        pattern_chunks = [chunk for chunk in meeting_patterns_text.split("\n") if chunk.strip()]
-        for chunk in pattern_chunks:
-            parsed_data = parse_meeting_pattern(chunk, start_date, end_date)
-            if parsed_data:
-                new_schedule = Schedule(class_name=class_name, **parsed_data)
-                db.add(new_schedule)
+        for _, row in df.iterrows():
+            class_name = str(row.get("Section", "Unknown Class")).strip()
+            start_date = str(row.get("Start Date", "")).strip()
+            end_date = str(row.get("End Date", "")).strip()
+            meeting_patterns_text = str(row.get("Meeting Patterns", "")).strip()
 
-    db.commit()
-    return {"message": "Schedule uploaded successfully"}
+            pattern_chunks = [chunk for chunk in meeting_patterns_text.split("\n") if chunk.strip()]
+            for chunk in pattern_chunks:
+                parsed_data = parse_meeting_pattern(chunk, start_date, end_date)
+                if parsed_data:
+                    new_schedule = Schedule(class_name=class_name, **parsed_data)
+                    db.add(new_schedule)
+
+        db.commit()
+        return {"message": "Schedule uploaded successfully"}
+
+    except Exception as e:
+        print("Upload failed:", e)
+        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+
 
 def parse_meeting_pattern(chunk, start_date, end_date):
     """ Parses meeting pattern data into structured format. """
