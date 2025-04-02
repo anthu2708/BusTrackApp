@@ -97,13 +97,14 @@ async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_d
 
         for _, row in df.iterrows():
             class_name = str(row.get("Section", "Unknown Class")).strip()
-            start_date = str(row.get("Start Date", "")).strip()
-            end_date = str(row.get("End Date", "")).strip()
             meeting_patterns_text = str(row.get("Meeting Patterns", "")).strip()
 
             pattern_chunks = [chunk for chunk in meeting_patterns_text.split("\n") if chunk.strip()]
             for chunk in pattern_chunks:
-                parsed_data = parse_meeting_pattern(chunk, start_date, end_date)
+                print("CP0", chunk)
+            for chunk in pattern_chunks:
+                parsed_data = parse_meeting_pattern(chunk)
+                print("CP1" , parsed_data)
                 if parsed_data:
                     new_schedule = Schedule(class_name=class_name, **parsed_data)
                     db.add(new_schedule)
@@ -115,33 +116,48 @@ async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_d
         print("Upload failed:", e)
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
-
-def parse_meeting_pattern(chunk, start_date, end_date):
-    """ Parses meeting pattern data into structured format. """
+def parse_meeting_pattern(chunk):
+    """Parses meeting pattern data into structured format, including start and end date."""
     parts = chunk.split('|')
     if len(parts) < 4:
-        return None  # Skip invalid rows
+        return None
 
-    days_str, class_time, location = parts[1].strip(), parts[2].strip(), parts[3].strip()
+    date_range = parts[0].strip()
+    days_str = parts[1].strip()
+    class_time = parts[2].strip()
+    location = parts[3].strip()
+
+    try:
+        start_date_str, end_date_str = [d.strip() for d in re.split(r'\s+-\s+', date_range)]
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+    except ValueError:
+        print(f"❌ Invalid date: {date_range}")
+        return None
+
     loc_match = re.match(r"([^-]+)-Floor (\d+)-Room (\S+)", location.strip())
-
     loc, room = (loc_match.group(1), loc_match.group(3)) if loc_match else (location, "Unknown")
-    print(loc)
     location_noti = f"Room {room} - {loc}"
-    days_list = ",".join([d.strip() for d in days_str.split()])  # Store as "Mon,Wed,Fri"
+    days_list = ",".join(d.strip() for d in days_str.split())
 
     try:
         start_time_str, end_time_str = [re.sub(r'\.', '', t.strip()).upper() for t in class_time.split('-')]
-        start_time_obj, end_time_obj = datetime.strptime(start_time_str, "%I:%M %p"), datetime.strptime(end_time_str, "%I:%M %p")
+        start_time_obj = datetime.strptime(start_time_str, "%I:%M %p")
+        end_time_obj = datetime.strptime(end_time_str, "%I:%M %p")
     except ValueError:
-        return None  # Skip invalid time formats
+        print(f"❌ Invalid time: {class_time}")
+        return None
 
     return {
-        "start_date": start_date, "end_date": end_date, "days": days_list,
-        "start_time": start_time_obj.strftime("%H:%M"), "end_time": end_time_obj.strftime("%H:%M"),
-        "location": location_noti, "address": LOC_ABB.get(loc, "Unknown Address"), "room": room
+        "start_date": str(start_date),
+        "end_date": str(end_date),
+        "days": days_list,
+        "start_time": start_time_obj.strftime("%H:%M"),
+        "end_time": end_time_obj.strftime("%H:%M"),
+        "location": location_noti,
+        "address": LOC_ABB.get(loc, "Unknown Address"),
+        "room": room
     }
-
 @router.get("/")
 def get_schedules(db: Session = Depends(get_db)):
     """Returns all schedules from the database."""
@@ -172,5 +188,4 @@ def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
         db.commit()
         return {"message": "Schedule deleted"}
     raise HTTPException(status_code=404, detail="Schedule not found")
-
 
