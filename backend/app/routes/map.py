@@ -4,6 +4,8 @@ import requests
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo  # Python 3.9+
+
 router = APIRouter()
 
 # ========================
@@ -93,7 +95,7 @@ def get_fastest_route(request: RouteRequest):
     for mode in modes:
         try:
             route_data = fetch_route(request.origin, request.destination, mode)
-            now = datetime.now()
+            now = datetime.now(ZoneInfo("America/Vancouver"))
             duration_sec = route_data["duration_value"]
             arrival_time = now + timedelta(seconds=duration_sec)
 
