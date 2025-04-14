@@ -3,6 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import * as Location from "expo-location";
 import { getNextClassToday } from "../../utils/schedule";
 import { useRouter } from "expo-router";
+import * as Notifications from 'expo-notifications';
+import {SchedulableTriggerInputTypes} from "expo-notifications";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
 
 const formatTime = (timeStr: string): string => {
   const date = new Date(timeStr.includes("T") ? timeStr : `2025-01-01T${timeStr}`);
@@ -28,6 +39,14 @@ const formatDuration = (seconds: number): string => {
   return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 };
 
+// notification
+const requestNotificationPermissions = async () => {
+  const { status } = await Notifications.getPermissionsAsync();
+  if (status !== 'granted') {
+    await Notifications.requestPermissionsAsync();
+  }
+};
+
 const App = () => {
   const [origin, setOrigin] = useState<string | null>(null);
   const router = useRouter();
@@ -36,56 +55,87 @@ const App = () => {
   const [nextClass, setNextClass] = useState<any | null>(null);
 
   const fetchNextClassAndRoutes = async () => {
-    try {
-      const scheduleRes = await fetch("https://tep-prj.onrender.com/schedule/");
-      const scheduleData = await scheduleRes.json();
-      const next = getNextClassToday(scheduleData);
-      setNextClass(next);
+  try {
+    const scheduleRes = await fetch("https://tep-prj.onrender.com/schedule/");
+    const scheduleData = await scheduleRes.json();
+    const next = getNextClassToday(scheduleData);
+    setNextClass(next);
 
-      if (!next) return;
+    if (!next) return;
 
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.warn("Permission to access location was denied");
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({});
-      const originStr = `${location.coords.latitude},${location.coords.longitude}`;
-      setOrigin(originStr);
-
-      const classStart = new Date();
-      const [h, m] = next.start_time.split(":").map((s: string) => parseInt(s, 10));
-      classStart.setHours(h);
-      classStart.setMinutes(m);
-      classStart.setSeconds(0);
-      classStart.setMilliseconds(0);
-
-      const arrivalTimestamp = Math.floor((classStart.getTime() - 5 * 60 * 1000) / 1000); // 5 mins early
-
-      const routeRes = await fetch("https://tep-prj.onrender.com/map/fastest-route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          origin: originStr,
-          destination: next.address,
-          arrival_time: arrivalTimestamp,
-        }),
-      });
-
-      const routeData = await routeRes.json();
-      if (routeData.status === "success") {
-        setRoutes(routeData.routes);
-      } else {
-        console.error("Failed to fetch routes:", routeData.error);
-      }
-    } catch (error) {
-      console.error("Error fetching next class or routes:", error);
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      console.warn("Permission to access location was denied");
+      return;
     }
-  };
+
+    const location = await Location.getCurrentPositionAsync({});
+    const originStr = `${location.coords.latitude},${location.coords.longitude}`;
+    setOrigin(originStr);
+
+    const [h, m] = next.start_time.split(":").map((s: string) => parseInt(s, 10));
+    const classStart = new Date();
+    classStart.setHours(h);
+    classStart.setMinutes(m);
+    classStart.setSeconds(0);
+    classStart.setMilliseconds(0);
+
+    const arrivalTimestamp = Math.floor((classStart.getTime() - 5 * 60 * 1000) / 1000); // 5 mins early
+
+    const notiTimeBeforeClass = new Date(classStart.getTime() - 30 * 60 * 1000);
+    const notiTimeBeforeDeparture = new Date(arrivalTimestamp * 1000 - 5 * 60 * 1000);
+
+await Notifications.scheduleNotificationAsync({
+  content: {
+    title: "Upcoming Class 📚",
+    body: `${next.class_name.split(" - ")[0]} starts in 30 minutes at ${next.address}`,
+  },
+  trigger: {
+    seconds: Math.max(5, Math.floor((notiTimeBeforeClass.getTime() - Date.now()) / 1000)),
+    repeats: false,
+    type: SchedulableTriggerInputTypes.TIME_INTERVAL
+  },
+});
+
+
+await Notifications.scheduleNotificationAsync({
+  content: {
+    title: "Time to Leave 🚌",
+    body: `Leave now to arrive 5 minutes early at ${next.address}`,
+  },
+  trigger: {
+    seconds: Math.max(5, Math.floor((notiTimeBeforeDeparture.getTime() - Date.now()) / 1000)),
+    repeats: false,
+    type: SchedulableTriggerInputTypes.TIME_INTERVAL
+  },
+});
+
+
+    const routeRes = await fetch("https://tep-prj.onrender.com/map/fastest-route", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        origin: originStr,
+        destination: next.address,
+        arrival_time: arrivalTimestamp,
+      }),
+    });
+
+    const routeData = await routeRes.json();
+    if (routeData.status === "success") {
+      setRoutes(routeData.routes);
+    } else {
+      console.error("Failed to fetch routes:", routeData.error);
+    }
+
+  } catch (error) {
+    console.error("Error fetching next class or routes:", error);
+  }
+};
 
   useEffect(() => {
     fetchNextClassAndRoutes();
+    requestNotificationPermissions();
   }, []);
   // const for testing
   //     const mockNextClass = {
@@ -245,7 +295,7 @@ const App = () => {
     </View>
   );
 };
-
+//style
 const styles = StyleSheet.create({
   container: {
     flex: 1,
