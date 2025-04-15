@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.thuanoii.Myapp"
     },
     "web": {
       "bundler": "metro",
@@ -42,14 +43,14 @@
         "origin": false
       },
       "eas": {
-        "projectId": "5d066acf-d9e5-4b18-a3b9-c443069f19f4"
+        "projectId": "49f8c21a-2668-472b-9da1-26a70f8d0296"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/5d066acf-d9e5-4b18-a3b9-c443069f19f4"
+      "url": "https://u.expo.dev/49f8c21a-2668-472b-9da1-26a70f8d0296"
     }
   }
 }
