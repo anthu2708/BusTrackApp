@@ -14,6 +14,7 @@ const ExploreScreen = () => {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const mapRef = useRef<MapView>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   if (!steps || !origin || !destination) {
     return (
@@ -73,9 +74,9 @@ const ExploreScreen = () => {
     }
   };
 
-  useEffect(() => {
-    focusStep(currentStep);
-  }, [currentStep]);
+  const stepPolylines = parsedSteps.map((step) =>
+    step.polyline?.points ? decodePolyline(step.polyline.points) : []
+  );
 
   return (
     <View style={styles.container}>
@@ -91,16 +92,43 @@ const ExploreScreen = () => {
         showsUserLocation
         followsUserLocation
       >
-        <Polyline coordinates={fullCoords} strokeWidth={5} strokeColor="#007AFF" />
-        {fullCoords.length > 0 && (
-          <>
-            <Marker coordinate={fullCoords[0]} title="Start" />
-            <Marker coordinate={fullCoords[fullCoords.length - 1]} title="End" />
-          </>
+        {/* Full route polyline in light gray */}
+        <Polyline coordinates={fullCoords} strokeWidth={4} strokeColor="#BBBBBB" />
+
+        {/* Highlight current step in blue */}
+        {stepPolylines[currentStep]?.length > 0 && (
+          <Polyline coordinates={stepPolylines[currentStep]} strokeWidth={6} strokeColor="#007AFF" />
+        )}
+
+        {/* Dashed line from user to start */}
+        {userLocation && fullCoords.length > 0 && (
+          <Polyline
+            coordinates={[userLocation, fullCoords[0]]}
+            strokeWidth={3}
+            strokeColor="orange"
+            lineDashPattern={[10, 5]}
+          />
+        )}
+
+        {/* Markers for each step */}
+        {stepPolylines.map((coords, index) =>
+          coords.length > 0 ? (
+            <Marker
+              key={index}
+              coordinate={coords[0]}
+              onPress={() => {
+                setCurrentStep(index);
+                flatListRef.current?.scrollToIndex({ index, animated: true });
+                focusStep(index);
+              }}
+            />
+
+          ) : null
         )}
       </MapView>
 
       <FlatList
+        ref={flatListRef}
         horizontal
         pagingEnabled
         data={parsedSteps}
@@ -110,6 +138,7 @@ const ExploreScreen = () => {
         onMomentumScrollEnd={(e) => {
           const index = Math.floor(e.nativeEvent.contentOffset.x / screen.width);
           setCurrentStep(index);
+          focusStep(index);
         }}
         renderItem={({ item, index }) => (
           <View style={styles.stepCard}>
@@ -138,6 +167,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     elevation: 5,
+    marginBottom: 70,
   },
   stepIndex: {
     fontWeight: "bold",
