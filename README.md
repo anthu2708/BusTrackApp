@@ -49,7 +49,7 @@ You can try **QuackTrack** right now — no build needed!
 ### Home Widget
 
 <p align="center">
-  <img src="asset/screen-home.png" width="180" />
+  <img src="asset/screen-home.jpg" width="180" />
 </p>
 
 ---
@@ -57,7 +57,7 @@ You can try **QuackTrack** right now — no build needed!
 ### Explore – Live Route Navigation
 
 <p align="center">
-  <img src="asset/screen-explore.png" width="180" />
+  <img src="asset/screen-explore.jpg" width="180" />
 </p>
 
 ---
@@ -65,7 +65,7 @@ You can try **QuackTrack** right now — no build needed!
 ### Calendar View – Today Schedule
 
 <p align="center">
-  <img src="asset/screen-calendar.png" width="180" />
+  <img src="asset/screen-calendar.jpg" width="180" />
 </p>
 
 ---
