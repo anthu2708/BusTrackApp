@@ -39,7 +39,7 @@ You can try **QuackTrack** right now — no build needed!
 2. Open Expo Go and **scan the QR code below**:
 
 <p align="center">
-  <img src="asset/qr-code.svg" width="220" alt="QR code to launch QuackTrack on Expo Go" />
+  <img src="asset/eas-update.svg" width="220" alt="QR code to launch QuackTrack on Expo Go" />
 </p>
 
 ---
