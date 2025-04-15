@@ -39,7 +39,7 @@ You can try **QuackTrack** right now — no build needed!
 2. Open Expo Go and **scan the QR code below**:
 
 <p align="center">
-  <img src="assets/qr-code.svg" width="220" alt="QR code to launch QuackTrack on Expo Go" />
+  <img src="asset/qr-code.svg" width="220" alt="QR code to launch QuackTrack on Expo Go" />
 </p>
 
 ---
@@ -49,7 +49,7 @@ You can try **QuackTrack** right now — no build needed!
 ### Home Widget
 
 <p align="center">
-  <img src="assets/screen-home.png" width="180" />
+  <img src="asset/screen-home.png" width="180" />
 </p>
 
 ---
@@ -57,7 +57,7 @@ You can try **QuackTrack** right now — no build needed!
 ### Explore – Live Route Navigation
 
 <p align="center">
-  <img src="assets/screen-explore.png" width="180" />
+  <img src="asset/screen-explore.png" width="180" />
 </p>
 
 ---
@@ -65,7 +65,7 @@ You can try **QuackTrack** right now — no build needed!
 ### Calendar View – Today Schedule
 
 <p align="center">
-  <img src="assets/screen-calendar.png" width="180" />
+  <img src="asset/screen-calendar.png" width="180" />
 </p>
 
 ---
