@@ -5,6 +5,9 @@ import re
 from datetime import datetime
 from database import get_db
 from models.schedule import Schedule
+from dependencies import get_current_user
+from models.user import User
+from sqlalchemy.sql.functions import current_user
 
 router = APIRouter()
 
@@ -83,38 +86,41 @@ LOC_ABB = {
 }
 
 @router.post("/upload-excel")
-async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    """Upload an Excel file and parse schedule data into the database."""
+async def upload_excel(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     try:
         if not file.filename.endswith((".xls", ".xlsx")):
             raise HTTPException(status_code=400, detail="Invalid file format")
 
-        db.query(Schedule).delete()
+        # Xóa schedule cũ của user
+        db.query(Schedule).filter(Schedule.user_id == current_user.id).delete()
         db.commit()
 
-        df = pd.read_excel(file.file, skiprows=2, engine="openpyxl")  # Skip first 2 rows
-        print("DataFrame loaded:", df.columns)
+        df = pd.read_excel(file.file, skiprows=2, engine="openpyxl")
 
         for _, row in df.iterrows():
             class_name = str(row.get("Section", "Unknown Class")).strip()
             meeting_patterns_text = str(row.get("Meeting Patterns", "")).strip()
-
             pattern_chunks = [chunk for chunk in meeting_patterns_text.split("\n") if chunk.strip()]
             for chunk in pattern_chunks:
-                print("CP0", chunk)
-            for chunk in pattern_chunks:
                 parsed_data = parse_meeting_pattern(chunk)
-                print("CP1" , parsed_data)
                 if parsed_data:
-                    new_schedule = Schedule(class_name=class_name, **parsed_data)
+                    new_schedule = Schedule(
+                        class_name=class_name,
+                        user_id=current_user.id,
+                        **parsed_data
+                    )
                     db.add(new_schedule)
 
         db.commit()
         return {"message": "Schedule uploaded successfully"}
 
     except Exception as e:
-        print("Upload failed:", e)
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+
 
 def parse_meeting_pattern(chunk):
     """Parses meeting pattern data into structured format, including start and end date."""
@@ -159,17 +165,26 @@ def parse_meeting_pattern(chunk):
         "room": room
     }
 @router.get("/")
-def get_schedules(db: Session = Depends(get_db)):
+def get_schedules(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Returns all schedules from the database."""
-    schedules = db.query(Schedule).all()
+    schedules = db.query(Schedule).filter(Schedule.user_id == current_user.id).all()
     return schedules
 
-@router.get("/{schedule_id}")
-def get_schedule(schedule_id: int, db: Session = Depends(get_db)):
+@router.delete("/{schedule_id}")
+def delete_schedule(
+    schedule_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """Returns a specific schedule by ID."""
-    schedule = db.query(Schedule).filter(Schedule.id == schedule_id).first()
+    schedule = db.query(Schedule).filter(
+        Schedule.id == schedule_id,
+        Schedule.user_id == current_user.id
+    ).first()
     if schedule:
-        return schedule
+        db.delete(schedule)
+        db.commit()
+        return {"message": "Schedule deleted"}
     raise HTTPException(status_code=404, detail="Schedule not found")
 
 @router.delete("/clear-all")
