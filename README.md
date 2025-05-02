@@ -1,71 +1,73 @@
-# 🦆 QuackTrack – Smart School & Transit Companion
+# QuackTrack – Your Smart School & Transit Companion
 
-QuackTrack is a mobile companion app for students to manage their school schedule and transit in real-time. Powered by FastAPI and React Native (Expo), QuackTrack helps students **import school schedules**, **track buses**, and **navigate to classes** — all through a **talking duck mascot** on your home widget.
+**QuackTrack** is a mobile app that helps students stay on top of their daily schedule and get to class on time — all with help from a friendly, talking duck mascot.  
+Built with **FastAPI** and **React Native (Expo)**, QuackTrack integrates school schedules, real-time bus tracking, and step-by-step navigation right into your home widget.
 
-## ✨ Key Features
+### ✨ Features at a Glance
 
-- 📅 **Smart Schedule Import**
-  - Import from `.xls` files or your phone’s calendar.
-  - Automatically detects today's classes and next class.
+##### 📅 Smart Schedule Detection
+- Import class schedules from Workday `.xls` files.
+- Automatically detects today’s classes and upcoming periods.
 
-- 🗺️ **Real-Time Bus & Navigation**
-  - View real-time bus locations using Google Maps API.
-  - Calculate fastest route (walk, drive, transit) to your next class.
-  - Get **step-by-step navigation** with **live updates**.
-
-## 🧠 Tech Stack
-
-| Layer     | Tech                                  |
-|-----------|---------------------------------------|
-| Backend   | FastAPI, SQLAlchemy, Pandas, Uvicorn  |
-| Frontend  | React Native (Expo), React Navigation |
-| APIs      | Google Maps API, Location, Calendar   |
-| Storage   | PostgreSQL                            |
+##### 🗺️ Real-Time Transit & Navigation
+- Track bus locations live via **Google Maps API**.
+- Get optimal walking, transit, or driving routes.
+- Navigate with **live directions** and **class-time awareness**.
 
 ---
 
-## 🚀 Getting Started
+## Tech Stack
+| Layer      | Technology & Services                                      |
+|------------|-------------------------------------------------------------|
+| Backend    | FastAPI, SQLAlchemy, Pandas, Uvicorn, **Hosted on Render**  |
+| Frontend   | React Native (Expo), React Navigation                       |
+| APIs       | Google Maps API, Device Location, Calendar                  |
+| Database   | PostgreSQL, **Hosted on Neon**                              |
 
-### 1. Try the App Instantly
 
-You can try **QuackTrack** right now — no build needed!
+---
 
-#### 📲 Steps:
+## Try It Instantly
 
-1. Download **Expo Go**:
-   - [iOS – App Store](https://apps.apple.com/app/expo-go/id982107779)
-   - [Android – Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent)
+### Quick Preview with Expo Go
 
-2. Open Expo Go and **scan the QR code below**:
+No build needed — just scan and run:
 
-<p align="center">
-  <img src="asset/eas-update.svg" width="220" alt="QR code to launch QuackTrack on Expo Go" />
+1. Download **Expo Go**  
+   - [iOS](https://apps.apple.com/app/expo-go/id982107779)  
+   - [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)
+
+2. Scan the QR code below:
+
+<p align="left">
+  <img src="asset/eas-update.svg" width="220" alt="QR code for QuackTrack on Expo Go" />
 </p>
 
 ---
 
-### 2. Screenshots
+## Screenshots
 
-### Home Widget
-
-<p align="center">
-  <img src="asset/screen-home.jpg" width="180" />
-</p>
-
----
-
-### Explore – Live Route Navigation
-
-<p align="center">
-  <img src="asset/screen-explore.jpg" width="180" />
-</p>
-
----
-
-### Calendar View – Today Schedule
-
-<p align="center">
-  <img src="asset/screen-calendar.jpg" width="180" />
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <strong>Home Widget</strong><br/>
+      <img src="asset/screen-home.jpg" width="180" />
+    </td>
+    <td align="center">
+      <strong>Explore – Navigation</strong><br/>
+      <img src="asset/screen-explore.jpg" width="180" />
+    </td>
+    <td align="center">
+      <strong>Calendar View</strong><br/>
+      <img src="asset/screen-calendar.jpg" width="180" />
+    </td>
+  </tr>
+</table>
 
 ---
+
+## 📬 Contact
+
+Have questions or feedback?
+
+[![Email](https://img.shields.io/badge/-Email-D14836?style=flat-square&logo=gmail&logoColor=white)](mailto:phungtranthuan2005@gmail.com) [![Discord](https://img.shields.io/badge/-Discord-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discordapp.com/users/thuanne_)
