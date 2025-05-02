@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, Time
-from database import Base
+from sqlalchemy import Column, Integer, String, Date, Time, ForeignKey
+from sqlalchemy.orm import relationship
+from backend.app.database import Base
 
 class Schedule(Base):
     __tablename__ = "schedules"
@@ -14,3 +15,5 @@ class Schedule(Base):
     location = Column(String)
     address = Column(String)
     room = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user = relationship("User", back_populates="schedules")
