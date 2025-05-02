@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
-from backend.app.models import User
-from backend.app.schemas.user import UserCreate
+from models import User
+from schemas.user import UserCreate
+from security import get_password_hash
+
 
 def create_user(db: Session, user: UserCreate):
     hashed_pw = get_password_hash(user.password)

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
-from backend.app.database import Base, engine
-from routes import map, schedule
+from database import Base, engine
+from routes import map, schedule, auth
 from dotenv import load_dotenv
 import os
 
