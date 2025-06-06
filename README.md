@@ -17,12 +17,12 @@ Built with **FastAPI** and **React Native (Expo)**, QuackTrack integrates school
 ---
 
 ## Tech Stack
-| Layer      | Technology & Services                                      |
-|------------|-------------------------------------------------------------|
-| Backend    | FastAPI, SQLAlchemy, Pandas, Uvicorn, **Hosted on Render**  |
-| Frontend   | React Native (Expo), React Navigation                       |
-| APIs       | Google Maps API, Device Location, Calendar                  |
-| Database   | PostgreSQL, **Hosted on Neon**                              |
+| Layer      | Technology & Services                                             |
+|------------|-------------------------------------------------------------------|
+| Backend    | FastAPI, SQLAlchemy, Pandas, Uvicorn, Docker **Hosted on Render** |
+| Frontend   | React Native (Expo), React Navigation                             |
+| APIs       | Google Maps API, Device Location, Calendar                        |
+| Database   | PostgreSQL, **Hosted on Neon**                                    |
 
 
 ---
