@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
-
-import * as MediaLibrary from 'expo-media-library';
+import { getNextClassToday, getTodayClasses } from '../../utils/schedule';
 
 const formatTime = (timeStr: string): string => {
   const date = new Date(timeStr.includes("T") ? timeStr : `2025-01-01T${timeStr}`);
@@ -12,15 +10,12 @@ const formatTime = (timeStr: string): string => {
   return `${hours}:${minutes}`;
 };
 
-
 const handleImport = async () => {
   try {
     const result = await DocumentPicker.getDocumentAsync({
       type: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
       copyToCacheDirectory: true,
     });
-
-    console.log("📂 Full result:", result);
 
     if (result.canceled || !result.assets?.length) {
       alert("❌ No file selected.");
@@ -41,8 +36,6 @@ const handleImport = async () => {
     });
 
     const data = await response.json();
-    console.log("📦 Server says:", data);
-
     if (response.ok) {
       alert("✅ Upload successful!");
     } else {
@@ -55,38 +48,6 @@ const handleImport = async () => {
   }
 };
 
-
-const getDayCode = () => {
-  const dayMap: Record<number, string> = {
-    0: 'Sun',
-    1: 'Mon',
-    2: 'Tue',
-    3: 'Wed',
-    4: 'Thu',
-    5: 'Fri',
-    6: 'Sat',
-  };
-  const code = dayMap[new Date().getDay()];
-  console.log("📅 Today is:", code);
-  return code;
-};
-
-const isToday = (start: string, end: string, days: string): boolean => {
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10); // 'YYYY-MM-DD'
-
-  const code = getDayCode();
-
-  const inRange =
-    start <= todayStr &&
-    todayStr <= end;
-
-  const matchDay = days.split(',').map(d => d.trim()).includes(code);
-
-  return inRange && matchDay;
-};
-
-
 const ScheduleScreen = () => {
   const [scheduleItems, setScheduleItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,19 +58,8 @@ const ScheduleScreen = () => {
         const response = await fetch('https://tep-prj.onrender.com/schedule/');
         const data = await response.json();
 
-        const filtered = data.filter((item: any) => {
-  const match = isToday(item.start_date, item.end_date, item.days);
-  if (match) {
-    console.log("✅ Included:", item.class_name, item.days);
-  } else {
-    console.log("❌ Skipped:", item.class_name, item.days);
-  }
-  return match;
-});
-
-        filtered.sort((a, b) => (a.start_time > b.start_time ? 1 : -1));
-
-        setScheduleItems(filtered);
+        const todaySchedule  = getTodayClasses(data);
+        setScheduleItems(todaySchedule);
       } catch (error) {
         console.error("Failed to load schedule", error);
       } finally {
@@ -121,39 +71,40 @@ const ScheduleScreen = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Schedule</Text>
-      <View style={styles.purpleBox}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#fff" style={{ marginTop: 50 }} />
-        ) : scheduleItems.length === 0 ? (
-          <Text style={{ textAlign: 'center', color: '#fff', marginTop: 50 }}>No classes today 🎉</Text>
-        ) : (
-          <ScrollView contentContainerStyle={styles.scrollView}>
-            {scheduleItems.map((item, index) => (
-              <View style={styles.scheduleItem} key={index}>
-                <View style={styles.timeBox}>
-                  <Text style={styles.timeText}>{formatTime(item.start_time)}</Text>
-
-                </View>
-                <View style={styles.details}>
-                  <Text style={styles.title}>{item.class_name}</Text>
-                  <Text style={styles.location}>{item.address}</Text>
-                  <Text style={styles.duration}>
-                    {formatTime(item.start_time)} - {formatTime(item.end_time)}
-                  </Text>
-                </View>
+  <View style={styles.container}>
+    <Text style={styles.header}>Schedule</Text>
+    <View style={styles.purpleBox}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#fff" style={{ marginTop: 50 }} />
+      ) : scheduleItems.length === 0 ? (
+        <Text style={{ textAlign: 'center', color: '#fff', marginTop: 50 }}>
+          No classes today
+        </Text>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollView}>
+          {scheduleItems.map((item, index) => (
+            <View style={styles.scheduleItem} key={index}>
+              <View style={styles.timeBox}>
+                <Text style={styles.timeText}>{formatTime(item.start_time)}</Text>
               </View>
-            ))}
-          </ScrollView>
-        )}
-        <TouchableOpacity style={styles.importButton} onPress={handleImport}>
-          <Text style={styles.importButtonText}>Import</Text>
-        </TouchableOpacity>
-
-      </View>
+              <View style={styles.details}>
+                <Text style={styles.title}>{item.class_name}</Text>
+                <Text style={styles.location}>{item.address}</Text>
+                <Text style={styles.duration}>
+                  {formatTime(item.start_time)} - {formatTime(item.end_time)}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+      <TouchableOpacity style={styles.importButton} onPress={handleImport}>
+        <Text style={styles.importButtonText}>Import</Text>
+      </TouchableOpacity>
     </View>
-  );
+  </View>
+);
+
 };
 
 const styles = StyleSheet.create({
@@ -179,20 +130,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   purpleBox: {
-    backgroundColor: '#A5A5F8', // Same color as the schedule header
+    backgroundColor: '#A5A5F8',
     borderRadius: 20,
     padding: 20,
     flex: 1,
     maxHeight: 550,
     top: 70,
-    width: '100%', // Ensure it takes full width
+    width: '100%',
   },
   scrollView: {
     width: '100%',
     flexGrow: 1,
   },
   scheduleItem: {
-    flexDirection: 'row', // Align items in a row
+    flexDirection: 'row',
     backgroundColor: '#FFF',
     borderRadius: 15,
     padding: 10,
@@ -205,7 +156,7 @@ const styles = StyleSheet.create({
   },
   timeBox: {
     width: 60,
-    height: 60, // Fixed height to make it square
+    height: 60,
     borderRadius: 15,
     backgroundColor: '#A5A5F8',
     justifyContent: 'center',
@@ -227,7 +178,6 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 5,
   },
-
   location: {
     fontSize: 14,
     color: '#555',
