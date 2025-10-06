@@ -1,15 +1,15 @@
 # QuackTrack – Your Smart School & Transit Companion
 
-**QuackTrack** is a mobile app that helps students stay on top of their daily schedule and get to class on time — all with help from a friendly, talking duck mascot.  
+**QuackTrack** is a mobile app that helps students stay on top of their daily schedule and get to class on time - all with help from a friendly, talking duck mascot.  
 Built with **FastAPI** and **React Native (Expo)**, QuackTrack integrates school schedules, real-time bus tracking, and step-by-step navigation right into your home widget.
 
-### ✨ Features at a Glance
+### ✨ Features at a Glance ✨
 
-##### 📅 Smart Schedule Detection
+##### Smart Schedule Detection
 - Import class schedules from Workday `.xls` files.
 - Automatically detects today’s classes and upcoming periods.
 
-##### 🗺️ Real-Time Transit & Navigation
+##### Real-Time Transit & Navigation
 - Track bus locations live via **Google Maps API**.
 - Get optimal walking, transit, or driving routes.
 - Navigate with **live directions** and **class-time awareness**.
@@ -66,7 +66,7 @@ No build needed — just scan and run:
 
 ---
 
-## 📬 Contact
+## Contact
 
 Have questions or feedback?
 
